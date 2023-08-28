@@ -5,30 +5,30 @@ import (
 	"time"
 )
 
+func worker(id int, jobs <-chan int, results chan<- int) {
+	for j := range jobs {
+		fmt.Println("worker", id, "started job", j)
+		time.Sleep(time.Second)
+		fmt.Println("worker", id, "finished job", j)
+		results <- j * 2
+	}
+}
+
 func main() {
-	c1 := make(chan string)
-	c2 := make(chan string)
+	const numJobs = 5
+	jobs := make(chan int, numJobs)
+	results := make(chan int, numJobs)
 
-	go func() {
-		for {
-			time.Sleep(time.Millisecond * 500)
-			c1 <- "Every 500ms"
-		}
-	}()
+	for w := 1; w <= 3; w++ {
+		go worker(w, jobs, results)
+	}
 
-	go func() {
-		for {
-			time.Sleep(time.Second * 2)
-			c2 <- "Every two seconds"
-		}
-	}()
+	for j := 1; j <= numJobs; j++ {
+		jobs <- j
+	}
+	close(jobs)
 
-	for {
-		select {
-		case msg1 := <-c1:
-			fmt.Println(msg1)
-		case msg2 := <-c2:
-			fmt.Println(msg2)
-		}
+	for a := 1; a <= numJobs; a++ {
+		<-results
 	}
 }
