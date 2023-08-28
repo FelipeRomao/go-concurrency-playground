@@ -5,22 +5,30 @@ import (
 	"time"
 )
 
-func countWithChannel(thing string, c chan string) {
-	for i := 1; i <= 5; i++ {
-		c <- thing
-		time.Sleep(time.Millisecond * 500)
-	}
-	close(c)
-}
-
 func main() {
-	c := make(chan string, 2)
-	c <- "Hello"
-	c <- "World"
+	c1 := make(chan string)
+	c2 := make(chan string)
 
-	msg := <-c
-	fmt.Println(msg)
+	go func() {
+		for {
+			time.Sleep(time.Millisecond * 500)
+			c1 <- "Every 500ms"
+		}
+	}()
 
-	msg = <-c
-	fmt.Println(msg)
+	go func() {
+		for {
+			time.Sleep(time.Second * 2)
+			c2 <- "Every two seconds"
+		}
+	}()
+
+	for {
+		select {
+		case msg1 := <-c1:
+			fmt.Println(msg1)
+		case msg2 := <-c2:
+			fmt.Println(msg2)
+		}
+	}
 }
