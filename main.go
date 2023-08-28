@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -12,7 +13,22 @@ func infiniteCount(thing string) {
 	}
 }
 
+func count(thing string) {
+	for i := 1; i <= 5; i++ {
+		fmt.Println(i, thing)
+		time.Sleep(time.Millisecond * 500)
+	}
+
+}
+
 func main() {
-	go infiniteCount("sheep")
-	infiniteCount("fish")
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		count("sheep")
+		wg.Done()
+	}()
+
+	wg.Wait()
 }
